@@ -9,7 +9,6 @@ on:
     types: [opened, synchronize]
 
 jobs:
-
   a_test_job:
     runs-on: ubuntu-20.04
     steps:
@@ -34,7 +33,7 @@ jobs:
         run: npm ci
       - name: Check style
         run: npm run eslint
-  
+
   build:
     runs-on: ubuntu-20.04
     steps:
@@ -89,8 +88,6 @@ jobs:
           start: npm run start-test
           wait-on: http://localhost:5000
 
-
-    
   deploy:
     needs: [test, e2e]
     runs-on: ubuntu-20.04
@@ -101,12 +98,17 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: npm ci
+      - name: Check commit messages for #skip
+        id: check_skip_commit
+        run: echo ::set-output name=skip_commit::$(if echo "$COMMIT_MESSAGES" | grep -q '#skip'; then echo "true"; else echo "false"; fi)
+        env:
+          COMMIT_MESSAGES: ${{ toJson(github.event.commits.message) }}
       - name: Trigger deployment
-        if: ${{ github.event_name == 'push' }}
-        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}           
+        if: ${{ github.event_name == 'push' && steps.check_skip_commit.outputs.skip_commit != 'true' }}
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.67.0
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_skip_commit.outputs.skip_commit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
