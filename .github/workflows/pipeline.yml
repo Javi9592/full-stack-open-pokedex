@@ -46,6 +46,14 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Test Failure
+        uses: rjstone/discord-webhook-notify@v1
+        if: failure()
+        with:
+          severity: error
+          description: 'commit https://github.com/${{ github.repository }}/commit/${{ github.sha }} by @${{github.actor}} broke the build'
+          text: Build failed
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -115,3 +123,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+      - name: Test Success
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
+        with:
+          severity: info
+          description: 'to https://pokedex-b8ft.onrender.com by @${{github.actor}}'
+          text: A new version of Pokedex deployed
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
