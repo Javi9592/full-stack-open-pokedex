@@ -1,12 +1,9 @@
-name: Deployment pipeline
+name: health-check
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize]
+      - add-new-feature
 
 jobs:
 
