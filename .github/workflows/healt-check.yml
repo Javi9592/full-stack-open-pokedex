@@ -3,11 +3,14 @@ name: health-check
 on:
   push:
     branches:
-      - add-new-feature
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
 
 jobs:
 
-  a_test_job:
+  check_the_url:
     runs-on: ubuntu-20.04
     steps:
       - name: Check the deployed service URL
